@@ -84,7 +84,7 @@ int BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombre)
     return 0;
 }
 
-void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos){//Se encarga de mostarte una lista con todos los ficheros existentes
+void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos){//Se encarga de mostrarte una lista con todos los ficheros existentes
     for(int i = 0; i < MAX_FICHEROS; i++)
         if ( directorio[i].dir_inodo != NULL_INODO){//Con este if nos encargamos de imprimir aquellos ficheros que son existentes
             char* nombre= directorio[i].dir_nfich;
