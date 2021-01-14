@@ -67,7 +67,7 @@ void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup){
     printf("Bloque %d Bytes\n", psup->s_block_size);
     printf("inodos particion = %d\n", psup->s_inodes_count);
     printf("inodes libres = %d\n", psup->s_free_inodes_count);
-    printf("Bloques particion = %d\n", psup->s_free_blocks_count);
+    printf("Bloques particion = %d\n", psup->s_blocks_count);
     printf("Bloques libres = %d\n", psup->s_free_blocks_count);
     printf("Primer bloque de datos = %d\n", psup->s_first_data_block);
 }
@@ -129,4 +129,88 @@ int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,char *nombrean
     }
     return 0;
 }
+
+int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock,char *nombre,  FILE *fich){
+    for(int i = 0; i < MAX_INODOS; i++){
+        // encontrar fichero
+        if(strcmp(directorio[i].dir_nfich,nombre) ==0){
+            // encontrar bloques
+            unsigned short int *bloques = inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque;
+            // liberar los bloques
+            for( int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++){
+                if(bloques[j] != NULL_BLOQUE){
+                    ext_bytemaps->bmap_bloques[bloques[j]] = 0;
+                    bloques[j] = NULL_BLOQUE; // resetear inode
+                    (ext_superblock->s_free_blocks_count)++;
+                }
+            }
+            inodos->blq_inodos[directorio[i].dir_inodo].size_fichero = 0;// resetear inode
+            // liberar el resto de linode
+            ext_bytemaps->bmap_inodos[directorio[i].dir_inodo] = 0;
+            (ext_superblock->s_free_inodes_count)++;
+            // liberar entrada a dir
+            directorio[i].dir_inodo = NULL_INODO;
+        }
+    }
+    return 1;
+}
+
+int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock,EXT_DATOS *memdatos, char *nombreorigen, char *nombredestino,  FILE *fich){
+    EXT_ENTRADA_DIR *ficheroNuevo;
+    EXT_SIMPLE_INODE *inode;
+    EXT_SIMPLE_INODE *inodeOriginal;
+    // encontrar fichero original
+    for(int i = 0; i < MAX_FICHEROS; i++)
+        if(strcmp(directorio[i].dir_nfich,nombreorigen) == 0){
+            inodeOriginal = &(inodos->blq_inodos[directorio[i].dir_inodo]);
+            break;
+        }
+    // buscar primera entrada libre de directorio
+    for(int i = 0; i < MAX_FICHEROS; i++)
+        if ( directorio[i].dir_inodo == NULL_INODO){
+            ficheroNuevo = &directorio[i];
+            break;
+        }
+    strcpy((ficheroNuevo->dir_nfich),nombredestino);
+
+    for(int i = 0; i < MAX_INODOS; i++)
+        if( ext_bytemaps->bmap_inodos[i] == 0){
+            inode = &(inodos->blq_inodos[i]);
+            ficheroNuevo->dir_inodo = i;
+            ext_bytemaps->bmap_inodos[i] = 1;
+            break;
+        }
+    inode->size_fichero = inodeOriginal->size_fichero;
+    ext_superblock->s_free_inodes_count--;
+    // copiar los bloques
+    for( int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++){
+        if(inodeOriginal->i_nbloque[j] != NULL_BLOQUE){
+            for (int i = ext_superblock->s_first_data_block; i < MAX_BLOQUES_DATOS; i++){
+                if(ext_bytemaps->bmap_bloques[i] == 0){
+                    inode->i_nbloque[j] = i;
+                    memcpy(&(memdatos->dato[i*SIZE_BLOQUE]),&(memdatos->dato[inodeOriginal->i_nbloque[j] * SIZE_BLOQUE]),SIZE_BLOQUE);
+                    ext_superblock->s_free_blocks_count--;
+                    ext_bytemaps->bmap_bloques[i] = 1;
+                    break;
+                }
+            }
+        }
+    }
+    return 1;
+}
+
+int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,EXT_DATOS *memdatos, char *nombre){
+   unsigned short int *bloques;
+   for(int i = 0; i < MAX_FICHEROS; i++){
+        if(strcmp(directorio[i].dir_nfich,nombre) ==0){
+            bloques = inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque;
+        }
+    }
+    for( int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++){
+        if(bloques[j] != NULL_BLOQUE){
+            getData(memdatos,bloques[j]);
+        }
+    }
+}
+
 

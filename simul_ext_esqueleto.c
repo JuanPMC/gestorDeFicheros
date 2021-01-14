@@ -53,7 +53,7 @@ int main(){
      memcpy(&ext_blq_inodos,(EXT_BLQ_INODOS *)&datosfich[2], SIZE_BLOQUE);
      memcpy(&memdatos,(EXT_DATOS *)&datosfich[4],MAX_BLOQUES_DATOS*SIZE_BLOQUE);
 
-     printf("%i", BuscaFich(&directorio, &ext_blq_inodos, "HOLA.txt"));
+     getData(&memdatos,4);
 
      // Buce de tratamiento de comandos
      for (;;){
@@ -75,6 +75,18 @@ int main(){
                     printf("%s renombrado a %s\n",argumento1,argumento2);
                 else
                     printf("el fichero %s ya existe\n",argumento2);
+                continue;
+            }
+            if (strcmp(orden,"remove")==0) {
+                Borrar(&directorio,&ext_blq_inodos,&ext_bytemaps,&ext_superblock,argumento1,fent);
+                continue;
+            }
+            if (strcmp(orden,"copy")==0) {
+                Copiar(&directorio,&ext_blq_inodos,&ext_bytemaps,&ext_superblock,&memdatos,argumento1,argumento2,fent);
+                continue;
+            }
+            if (strcmp(orden,"imprimir")==0) {
+                Imprimir(&directorio,&ext_blq_inodos,&memdatos,argumento1);
                 continue;
             }
 /*
