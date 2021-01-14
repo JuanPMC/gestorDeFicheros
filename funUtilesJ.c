@@ -73,7 +73,7 @@ void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup){
 }
 void getData(EXT_DATOS *memdatos,int bloque){
     for( int i = 0; i < SIZE_BLOQUE; i++)
-        printf("%c",memdatos->dato[(SIZE_BLOQUE*bloque) + i]);
+        printf("%c",memdatos->dato[(SIZE_BLOQUE*(bloque - 4)) + i ]);
 }
 
 
@@ -188,7 +188,8 @@ int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,EXT_BYTE_MAPS *ex
             for (int i = ext_superblock->s_first_data_block; i < MAX_BLOQUES_DATOS; i++){
                 if(ext_bytemaps->bmap_bloques[i] == 0){
                     inode->i_nbloque[j] = i;
-                    memcpy(&(memdatos->dato[i*SIZE_BLOQUE]),&(memdatos->dato[inodeOriginal->i_nbloque[j] * SIZE_BLOQUE]),SIZE_BLOQUE);
+                    char *testing = &(memdatos->dato[inodeOriginal->i_nbloque[j] * SIZE_BLOQUE]);
+                    memcpy(&(memdatos->dato[(i - 4)*SIZE_BLOQUE]),&(memdatos->dato[(-4 + inodeOriginal->i_nbloque[j]) * SIZE_BLOQUE]),SIZE_BLOQUE);
                     ext_superblock->s_free_blocks_count--;
                     ext_bytemaps->bmap_bloques[i] = 1;
                     break;
@@ -211,6 +212,54 @@ int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,EXT_DATOS *memd
             getData(memdatos,bloques[j]);
         }
     }
+    printf("\n");
 }
 
+void Grabarinodosydirectorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, FILE *fich){
+    // abrimos el fichero
+    EXT_DATOS datosfich[MAX_BLOQUES_PARTICION];
+    rewind(fich);
+    fread(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fich);
+
+    memcpy(&datosfich[3],directorio, SIZE_BLOQUE);
+    memcpy(&datosfich[2],inodos, SIZE_BLOQUE);
+
+    rewind(fich);
+    fwrite(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fich);
+}
+
+void GrabarByteMaps(EXT_BYTE_MAPS *ext_bytemaps, FILE *fich){
+    // abrimos el fichero
+    EXT_DATOS datosfich[MAX_BLOQUES_PARTICION];
+    rewind(fich);
+    fread(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fich);
+
+    memcpy(&datosfich[1],ext_bytemaps, SIZE_BLOQUE);
+
+    rewind(fich);
+    fwrite(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fich);
+}
+
+void GrabarSuperBloque(EXT_SIMPLE_SUPERBLOCK *ext_superblock, FILE *fich){
+    // abrimos el fichero
+    EXT_DATOS datosfich[MAX_BLOQUES_PARTICION];
+    rewind(fich);
+    fread(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fich);
+
+    memcpy(&datosfich[0],ext_superblock, SIZE_BLOQUE);
+
+    rewind(fich);
+    fwrite(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fich);
+}
+void GrabarDatos(EXT_DATOS *memdatos, FILE *fich){
+    // abrimos el fichero
+    EXT_DATOS datosfich[MAX_BLOQUES_PARTICION];
+    rewind(fich);
+    fread(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fich);
+
+    memcpy(&datosfich[4],memdatos,MAX_BLOQUES_DATOS*SIZE_BLOQUE);
+
+    rewind(fich);
+    fwrite(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fich);
+}
 

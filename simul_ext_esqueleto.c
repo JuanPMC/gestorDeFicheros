@@ -1,4 +1,4 @@
-#include<stdio.h>
+    #include<stdio.h>
 #include<string.h>
 #include<ctype.h>
 #include "cabeceras.h"
@@ -53,8 +53,6 @@ int main(){
      memcpy(&ext_blq_inodos,(EXT_BLQ_INODOS *)&datosfich[2], SIZE_BLOQUE);
      memcpy(&memdatos,(EXT_DATOS *)&datosfich[4],MAX_BLOQUES_DATOS*SIZE_BLOQUE);
 
-     getData(&memdatos,4);
-
      // Buce de tratamiento de comandos
      for (;;){
 		 do {
@@ -89,23 +87,19 @@ int main(){
                 Imprimir(&directorio,&ext_blq_inodos,&memdatos,argumento1);
                 continue;
             }
-/*
-         //...
-         // Escritura de metadatos en comandos rename, remove, copy
-         Grabarinodosydirectorio(&directorio,&ext_blq_inodos,fent);
-         GrabarByteMaps(&ext_bytemaps,fent);
-         GrabarSuperBloque(&ext_superblock,fent);
-         if (grabardatos)
-           GrabarDatos(&memdatos,fent);
-         grabardatos = 0;
-         //Si el comando es salir se habrán escrito todos los metadatos
-         //faltan los datos y cerrar
+            Grabarinodosydirectorio(&directorio,&ext_blq_inodos,fent);
+            GrabarByteMaps(&ext_bytemaps,fent);
+            GrabarSuperBloque(&ext_superblock,fent);
+ /*           if (grabardatos)
+                GrabarDatos(&memdatos,fent);
+            grabardatos = 0;
+       */     //Si el comando es salir se habrán escrito todos los metadatos
+            //faltan los datos y cerrar
 
-         if (strcmp(orden,"salir")==0){
-            GrabarDatos(&memdatos,fent);
-            fclose(fent);
-            return 0;
-         }
-         */
+            if (strcmp(orden,"salir")==0){
+                GrabarDatos(&memdatos,fent);
+                fclose(fent);
+                return 0;
+            }
      }
 }
