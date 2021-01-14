@@ -76,25 +76,28 @@ int main(){
                 continue;
             }
             if (strcmp(orden,"remove")==0) {
-                Borrar(&directorio,&ext_blq_inodos,&ext_bytemaps,&ext_superblock,argumento1,fent);
+                if(Borrar(&directorio,&ext_blq_inodos,&ext_bytemaps,&ext_superblock,argumento1,fent))
+                    printf("Eliminado: %s\n",argumento1);
+                else
+                    printf("el fichero %s no existe\n",argumento2);
                 continue;
             }
             if (strcmp(orden,"copy")==0) {
-                Copiar(&directorio,&ext_blq_inodos,&ext_bytemaps,&ext_superblock,&memdatos,argumento1,argumento2,fent);
+                if(Copiar(&directorio,&ext_blq_inodos,&ext_bytemaps,&ext_superblock,&memdatos,argumento1,argumento2,fent))
+                    printf("Fichero %s copiado a %s", argumento1,argumento2);
+                else
+                    printf("Fichero no se ha podido copiar \n");
                 continue;
             }
             if (strcmp(orden,"imprimir")==0) {
                 Imprimir(&directorio,&ext_blq_inodos,&memdatos,argumento1);
                 continue;
             }
+
+            // grabamos metadatos
             Grabarinodosydirectorio(&directorio,&ext_blq_inodos,fent);
             GrabarByteMaps(&ext_bytemaps,fent);
             GrabarSuperBloque(&ext_superblock,fent);
- /*           if (grabardatos)
-                GrabarDatos(&memdatos,fent);
-            grabardatos = 0;
-       */     //Si el comando es salir se habrán escrito todos los metadatos
-            //faltan los datos y cerrar
 
             if (strcmp(orden,"salir")==0){
                 GrabarDatos(&memdatos,fent);

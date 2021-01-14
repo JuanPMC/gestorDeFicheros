@@ -6,19 +6,19 @@
 
 #define LONGITUD_COMANDO 100
 
-void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps){//Esta funcion se encarga del printeo de los Bytemaps
-    printf("Inodes : ");//Desde esta linea hasta la 13 se encarga de imprimir por pantalla el bytemap de inodos 
+void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps){
+    printf("Inodes : ");
     for( int i = 0; i < MAX_INODOS; i++)
         printf("%i",ext_bytemaps->bmap_inodos[i]);
     printf("\n");
 
-    printf("Bloques : ");//Desde esta linea hasta la 18 se encarga de imprimir por pantalla el Bytemap de bloques
+    printf("Bloques : ");
     for( int i = 0; i < MAX_BLOQUES_PARTICION; i++)
         printf("%i",ext_bytemaps->bmap_bloques[i]);
     printf("\n");
 }
 
-int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argumento2){//Esta funcion se encarga de comprobar que el comando introducido existe
+int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argumento2){
     char * pch,*old_pch;
     int numeroChars;
 
@@ -36,10 +36,8 @@ int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argu
         pch=strchr(pch+1,' ');
         if (pch==NULL)  pch=strchr(strcomando,'\n');
 
-    }else{
+    }else
         return -1;
-    }
-
 
     if (pch-old_pch != 0 ){
             numeroChars = pch - (old_pch + 1);// calcular numero de caracteres
@@ -60,10 +58,10 @@ int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argu
         strcpy(argumento2,"none");
     }
 
-    return 0; // Esto nos permitira salir del bucle de la entrada
+    return 0; // this will exit the input loop
 }
 
-void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup){//Esta funcion se encarga de imprimir por pantalla el contenido del superbloque
+void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup){
     printf("Bloque %d Bytes\n", psup->s_block_size);
     printf("inodos particion = %d\n", psup->s_inodes_count);
     printf("inodes libres = %d\n", psup->s_free_inodes_count);
@@ -71,14 +69,13 @@ void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup){//Esta funcion se encarga de im
     printf("Bloques libres = %d\n", psup->s_free_blocks_count);
     printf("Primer bloque de datos = %d\n", psup->s_first_data_block);
 }
-void getData(EXT_DATOS *memdatos,int bloque){//Esta funcion se coupa de sacar los datos de los bloques
+void getData(EXT_DATOS *memdatos,int bloque){
     for( int i = 0; i < SIZE_BLOQUE; i++)
         printf("%c",memdatos->dato[(SIZE_BLOQUE*(bloque - 4)) + i ]);
 }
 
 
-int BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombre){//Leva a cabo la funcion de buscar el fichero 
-    
+int BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombre){
     //printf("%d",inodos->blq_inodos[directorio->dir_inodo].i_nbloque[0]);
     for(int i = 0; i < MAX_FICHEROS; i++)
         if(strcmp(directorio[i].dir_nfich,nombre) == 0){
@@ -87,23 +84,23 @@ int BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombre)
     return 0;
 }
 
-void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos){//Se encarga de ostarte una lista con todos los ficheros existentes
+void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos){
     for(int i = 0; i < MAX_FICHEROS; i++)
-        if ( directorio[i].dir_inodo != NULL_INODO){//Con este if nos encargamos de imprimir aquellos directorios que son existentes
+        if ( directorio[i].dir_inodo != NULL_INODO){
             char* nombre= directorio[i].dir_nfich;
             int tamanio = inodos->blq_inodos[directorio[i].dir_inodo].size_fichero;
             int inode = directorio[i].dir_inodo;
             unsigned short int *bloques = inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque;
             printf("%s",nombre);
             int espacios = 20-strlen(nombre);
-            for ( int i = 0; i < espacios;i++)//En este for vamos imprimiendo el tamaño de los ficheros
+            for ( int i = 0; i < espacios;i++)
                 printf(" ");
             printf("Tamanio: %d",tamanio);
 
             espacios = 15-floor(log10(abs(tamanio))) + 1;
             if ( tamanio == 0 ) espacios = 16;
 
-            for ( int i = 0; i < espacios;i++)//A continuacion imprimimos los bloques corresponidentes al fichero
+            for ( int i = 0; i < espacios;i++)
                 printf(" ");
             printf("Bloques: ");
             for (int i = 0; i < MAX_NUMS_BLOQUE_INODO;i++)
@@ -113,14 +110,14 @@ void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos){//Se encarg
         }
 }
 
-int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,char *nombreantiguo, char *nombrenuevo){//Con esta funcion nos encargamos del comando de renombrar 
+int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,char *nombreantiguo, char *nombrenuevo){
     int noesta = 1;
-    for(int i = 0; i < MAX_FICHEROS; i++){//Con este for y el if que le continua nos aseguramos que el nuevo nombre no este en ningun fichero
+    for(int i = 0; i < MAX_FICHEROS; i++){
         if(strcmp(directorio[i].dir_nfich,nombrenuevo) == 0){
             noesta=0;
         }
     }
-    if(noesta){//A partir de aqui buscamos el fichero con el nombre antiguo y cargamos el nuevo nombre en su lugar
+    if(noesta){
         for(int j = 0; j < MAX_FICHEROS; j++){
             if(strcmp(directorio[j].dir_nfich,nombreantiguo) == 0){
                 strcpy(directorio[j].dir_nfich,nombrenuevo);
@@ -131,10 +128,15 @@ int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,char *nombrean
     return 0;
 }
 
-int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock,char *nombre,  FILE *fich){//Se encarga de borrar el fichero
+int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock,char *nombre,  FILE *fich){
+
+    int existe = 0; // getionar errores
+
     for(int i = 0; i < MAX_INODOS; i++){
         // encontrar fichero
         if(strcmp(directorio[i].dir_nfich,nombre) ==0){
+            //marcar que esta
+            existe = 1;
             // encontrar bloques
             unsigned short int *bloques = inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque;
             // liberar los bloques
@@ -153,55 +155,104 @@ int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,EXT_BYTE_MAPS *ex
             directorio[i].dir_inodo = NULL_INODO;
         }
     }
-    return 1;
+
+    return existe;
 }
-//En la funcion que prosigue nos encargamos de copiar los datos de un fichero y cargarlos en otro
+
 int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock,EXT_DATOS *memdatos, char *nombreorigen, char *nombredestino,  FILE *fich){
-    EXT_ENTRADA_DIR *ficheroNuevo;
-    EXT_SIMPLE_INODE *inode;
-    EXT_SIMPLE_INODE *inodeOriginal;
+    // variables de gestion de errores
+    int bloquesNecesarios = 0,error = 0;
+
+    // variables de funcionamiento
+    EXT_ENTRADA_DIR *ficheroNuevo = NULL;
+    EXT_SIMPLE_INODE *inode = NULL;
+    EXT_SIMPLE_INODE *inodeOriginal = NULL;
     // encontrar fichero original
+
+    // ver si el destino ya existe
+    for(int i = 0; i < MAX_FICHEROS; i++){
+        if(strcmp(directorio[i].dir_nfich,nombredestino) == 0){
+            error = 1;
+        }
+    }
+
     for(int i = 0; i < MAX_FICHEROS; i++)
         if(strcmp(directorio[i].dir_nfich,nombreorigen) == 0){
             inodeOriginal = &(inodos->blq_inodos[directorio[i].dir_inodo]);
             break;
         }
-    // buscar primera entrada libre de directorio
-    for(int i = 0; i < MAX_FICHEROS; i++)
-        if ( directorio[i].dir_inodo == NULL_INODO){
-            ficheroNuevo = &directorio[i];
-            break;
-        }
-    strcpy((ficheroNuevo->dir_nfich),nombredestino);
+    if (inodeOriginal == NULL)  error = 1; // el fichero no existe
 
-    for(int i = 0; i < MAX_INODOS; i++)
-        if( ext_bytemaps->bmap_inodos[i] == 0){
-            inode = &(inodos->blq_inodos[i]);
-            ficheroNuevo->dir_inodo = i;
-            ext_bytemaps->bmap_inodos[i] = 1;
-            break;
-        }
-    inode->size_fichero = inodeOriginal->size_fichero;
-    ext_superblock->s_free_inodes_count--;
-    // copiar los bloques
-    for( int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++){
-        if(inodeOriginal->i_nbloque[j] != NULL_BLOQUE){
-            for (int i = ext_superblock->s_first_data_block; i < MAX_BLOQUES_DATOS; i++){
-                if(ext_bytemaps->bmap_bloques[i] == 0){
-                    inode->i_nbloque[j] = i;
-                    char *testing = &(memdatos->dato[inodeOriginal->i_nbloque[j] * SIZE_BLOQUE]);
-                    memcpy(&(memdatos->dato[(i - 4)*SIZE_BLOQUE]),&(memdatos->dato[(-4 + inodeOriginal->i_nbloque[j]) * SIZE_BLOQUE]),SIZE_BLOQUE);
-                    ext_superblock->s_free_blocks_count--;
-                    ext_bytemaps->bmap_bloques[i] = 1;
-                    break;
+    if(!error){
+        // buscar primera entrada libre de directorio
+        for(int i = 0; i < MAX_FICHEROS; i++)
+            if ( directorio[i].dir_inodo == NULL_INODO){
+                ficheroNuevo = &directorio[i];
+                break;
+            }
+        if (ficheroNuevo == NULL)  error = 1; // entradas de directorio libres
+    }
+
+    if(!error){
+        strcpy((ficheroNuevo->dir_nfich),nombredestino);
+
+        for(int i = 0; i < MAX_INODOS; i++)
+            if( ext_bytemaps->bmap_inodos[i] == 0){
+                inode = &(inodos->blq_inodos[i]);
+                ficheroNuevo->dir_inodo = i;
+                ext_bytemaps->bmap_inodos[i] = 1;
+                break;
+            }
+        if (inode == NULL) error = 1; // no hay inodes libres
+    }
+    if(!error){
+        inode->size_fichero = inodeOriginal->size_fichero;
+        ext_superblock->s_free_inodes_count--;
+        // copiar los bloques
+        // compobar que hay suficientes bloques:
+        for (int i = 0; i < MAX_NUMS_BLOQUE_INODO;i++)
+                    if ( inodeOriginal->i_nbloque[i] != NULL_BLOQUE )
+                        bloquesNecesarios++;
+        if (bloquesNecesarios > ext_superblock->s_free_blocks_count) return 0; // no hay suficientes superbloques
+
+        for( int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++){
+            if(inodeOriginal->i_nbloque[j] != NULL_BLOQUE){
+                for (int i = ext_superblock->s_first_data_block; i < MAX_BLOQUES_DATOS; i++){
+                    if(ext_bytemaps->bmap_bloques[i] == 0){
+                        inode->i_nbloque[j] = i;
+                        char *testing = &(memdatos->dato[inodeOriginal->i_nbloque[j] * SIZE_BLOQUE]);
+                        memcpy(&(memdatos->dato[(i - 4)*SIZE_BLOQUE]),&(memdatos->dato[(-4 + inodeOriginal->i_nbloque[j]) * SIZE_BLOQUE]),SIZE_BLOQUE);
+                        ext_superblock->s_free_blocks_count--;
+                        ext_bytemaps->bmap_bloques[i] = 1;
+                        break;
+                    }
                 }
             }
         }
+    }else{
+        // geston del error
+
+        // revertir cambios:
+        EXT_DATOS datosfich[MAX_BLOQUES_PARTICION];
+        rewind(fich);
+        fread(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fich);
+
+        memcpy(ext_superblock,(EXT_SIMPLE_SUPERBLOCK *)&datosfich[0], SIZE_BLOQUE);
+        memcpy(directorio,(EXT_ENTRADA_DIR *)&datosfich[3], SIZE_BLOQUE);
+        memcpy(ext_bytemaps,(EXT_BLQ_INODOS *)&datosfich[1], SIZE_BLOQUE);
+        memcpy(inodos,(EXT_BLQ_INODOS *)&datosfich[2], SIZE_BLOQUE);
+        memcpy(memdatos,(EXT_DATOS *)&datosfich[4],MAX_BLOQUES_DATOS*SIZE_BLOQUE);
+
+        // Devolvemos 0
+        return 0;
     }
+    // grabamos los cambios:
+    GrabarDatos(memdatos,fich);
+
     return 1;
 }
 
-int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,EXT_DATOS *memdatos, char *nombre){//Lleva a cabo el printeo de los daots de un fichero
+int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,EXT_DATOS *memdatos, char *nombre){
    unsigned short int *bloques;
    for(int i = 0; i < MAX_FICHEROS; i++){
         if(strcmp(directorio[i].dir_nfich,nombre) ==0){
@@ -216,7 +267,7 @@ int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos,EXT_DATOS *memd
     printf("\n");
 }
 
-void Grabarinodosydirectorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, FILE *fich){//Grabamos los inodos y el directorio en el fichero
+void Grabarinodosydirectorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, FILE *fich){
     // abrimos el fichero
     EXT_DATOS datosfich[MAX_BLOQUES_PARTICION];
     rewind(fich);
@@ -229,7 +280,7 @@ void Grabarinodosydirectorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos
     fwrite(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fich);
 }
 
-void GrabarByteMaps(EXT_BYTE_MAPS *ext_bytemaps, FILE *fich){//Grabamos los Bytemaps en el fichero
+void GrabarByteMaps(EXT_BYTE_MAPS *ext_bytemaps, FILE *fich){
     // abrimos el fichero
     EXT_DATOS datosfich[MAX_BLOQUES_PARTICION];
     rewind(fich);
@@ -241,7 +292,7 @@ void GrabarByteMaps(EXT_BYTE_MAPS *ext_bytemaps, FILE *fich){//Grabamos los Byte
     fwrite(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fich);
 }
 
-void GrabarSuperBloque(EXT_SIMPLE_SUPERBLOCK *ext_superblock, FILE *fich){//Graba los datos del superbloque  en el fichero
+void GrabarSuperBloque(EXT_SIMPLE_SUPERBLOCK *ext_superblock, FILE *fich){
     // abrimos el fichero
     EXT_DATOS datosfich[MAX_BLOQUES_PARTICION];
     rewind(fich);
@@ -252,7 +303,7 @@ void GrabarSuperBloque(EXT_SIMPLE_SUPERBLOCK *ext_superblock, FILE *fich){//Grab
     rewind(fich);
     fwrite(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fich);
 }
-void GrabarDatos(EXT_DATOS *memdatos, FILE *fich){//Graba todos los datos de los ficheros en el fichero
+void GrabarDatos(EXT_DATOS *memdatos, FILE *fich){
     // abrimos el fichero
     EXT_DATOS datosfich[MAX_BLOQUES_PARTICION];
     rewind(fich);
